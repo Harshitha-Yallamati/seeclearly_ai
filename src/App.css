@@ -1,0 +1,6 @@
+/* SeeClearly AI — App-level styles */
+/* All design tokens are in index.css */
+
+#root {
+  min-height: 100vh;
+}

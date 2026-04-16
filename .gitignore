@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+dr_env/
+*.egg-info/
+
+# Model weights (too large for git)
+models/*.keras
+models/*.h5
+models/*.tflite
+models/*.pb
+
+# Training outputs
+training/outputs/
+
+# Dataset (too large for git)
+aptos2019-blindness-detection/
+
+# Misc
+*.png
+!public/*.png
+test.png

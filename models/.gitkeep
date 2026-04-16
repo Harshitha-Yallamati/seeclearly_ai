@@ -1,0 +1,10 @@
+# This directory stores trained model weights.
+# The model file (dr_efficientnet_b3.keras) is too large for Git.
+#
+# To get the model:
+#   1. Train on Google Colab using training/train.py
+#   2. Download the .keras file and place it here
+#   3. The backend will automatically detect and load it
+#
+# Without the model file, the backend runs in MOCK mode
+# with simulated predictions.
