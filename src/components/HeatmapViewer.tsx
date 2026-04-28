@@ -3,18 +3,23 @@ import { useState } from "react";
 interface HeatmapViewerProps {
   originalPreview: string;
   heatmapBase64: string;
+  overlayBase64?: string;
 }
 
 type ViewMode = "original" | "heatmap" | "overlay";
 
-const HeatmapViewer = ({ originalPreview, heatmapBase64 }: HeatmapViewerProps) => {
+const HeatmapViewer = ({
+  originalPreview,
+  heatmapBase64,
+  overlayBase64,
+}: HeatmapViewerProps) => {
   const [mode, setMode] = useState<ViewMode>("overlay");
   const [isZoomed, setIsZoomed] = useState(false);
 
   const modes: { key: ViewMode; label: string; icon: string }[] = [
-    { key: "original", label: "Original", icon: "🔬" },
-    { key: "heatmap", label: "Grad-CAM", icon: "🔥" },
-    { key: "overlay", label: "Overlay", icon: "🧬" },
+    { key: "original", label: "Original", icon: "O" },
+    { key: "heatmap", label: "Grad-CAM", icon: "H" },
+    { key: "overlay", label: "Overlay", icon: "M" },
   ];
 
   const getDisplayImage = () => {
@@ -22,66 +27,68 @@ const HeatmapViewer = ({ originalPreview, heatmapBase64 }: HeatmapViewerProps) =
       case "original":
         return originalPreview;
       case "heatmap":
+        return heatmapBase64;
       case "overlay":
-        return heatmapBase64;
       default:
-        return heatmapBase64;
+        return overlayBase64 || heatmapBase64;
     }
   };
 
   return (
-    <div className="space-y-3 animate-fade-in-up">
-      {/* Mode Selector */}
-      <div className="flex gap-1.5 p-1 rounded-lg bg-muted/50">
-        {modes.map((m) => (
+    <div className="animate-fade-in-up space-y-3">
+      <div className="flex gap-1.5 rounded-lg bg-muted/50 p-1">
+        {modes.map((view) => (
           <button
-            key={m.key}
-            onClick={() => setMode(m.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-semibold transition-all duration-200 ${
-              mode === m.key
+            key={view.key}
+            onClick={() => setMode(view.key)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-all duration-200 ${
+              mode === view.key
                 ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <span>{m.icon}</span>
-            <span>{m.label}</span>
+            <span className="font-mono text-[11px]">{view.icon}</span>
+            <span>{view.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Image Display */}
       <div
-        className={`relative rounded-xl overflow-hidden border border-border/50 glass cursor-pointer transition-all duration-300 ${
-          isZoomed ? "scale-110 z-50 shadow-2xl" : ""
+        className={`relative cursor-pointer overflow-hidden rounded-xl border border-border/50 glass transition-all duration-300 ${
+          isZoomed ? "z-50 scale-110 shadow-2xl" : ""
         }`}
-        onClick={() => setIsZoomed(!isZoomed)}
+        onClick={() => setIsZoomed((value) => !value)}
       >
         <img
           src={getDisplayImage()}
           alt={`${mode} view of retinal fundus`}
-          className="w-full h-64 object-contain bg-black/20"
+          className="h-64 w-full bg-black/20 object-contain"
         />
 
-        {/* Overlay label */}
-        <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm">
-          <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-            {mode === "original" ? "Original Fundus" : mode === "heatmap" ? "Grad-CAM Heatmap" : "Model Attention Overlay"}
+        <div className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 backdrop-blur-sm">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+            {mode === "original"
+              ? "Original Fundus"
+              : mode === "heatmap"
+                ? "Raw JET Heatmap"
+                : "Alpha-Blended Overlay"}
           </span>
         </div>
 
-        {/* Zoom hint */}
-        <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm">
+        <div className="absolute bottom-2 right-2 rounded-md bg-black/40 px-2 py-1 backdrop-blur-sm">
           <span className="text-[10px] text-white/60">
             {isZoomed ? "Click to zoom out" : "Click to zoom"}
           </span>
         </div>
       </div>
 
-      {/* Explanation */}
-      <p className="text-xs text-muted-foreground leading-relaxed">
-        {mode === "original" && "The original retinal fundus image as uploaded."}
-        {mode === "heatmap" && "Grad-CAM highlights regions the model focused on. Red/yellow areas indicate high model attention — likely pathological features."}
-        {mode === "overlay" && "Overlay shows the model's attention regions mapped onto the original image. Bright areas correlate with detected retinopathy features."}
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        {mode === "original" &&
+          "The original retinal fundus image as uploaded."}
+        {mode === "heatmap" &&
+          "The raw Grad-CAM heatmap shows where the network assigned the strongest activation. Warmer colors indicate higher attention."}
+        {mode === "overlay" &&
+          "The overlay blends the normalized JET heatmap onto the original retina so lesion-focused regions stay aligned with the anatomy."}
       </p>
     </div>
   );

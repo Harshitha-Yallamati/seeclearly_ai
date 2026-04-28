@@ -1,8 +1,5 @@
 /**
- * SeeClearly AI — Mock Predictor
- *
- * Client-side fallback when the Flask backend is unavailable.
- * Generates realistic-looking predictions for UI development/testing.
+ * Client-side mock predictor for offline UI testing.
  */
 
 import type { PredictionResult } from "./api";
@@ -13,42 +10,39 @@ const STAGES: DRStage[] = ["No_DR", "Mild", "Moderate", "Severe", "PDR"];
 
 const EXPLANATIONS: Record<DRStage, string> = {
   No_DR:
-    "No signs of Diabetic Retinopathy detected. The retinal blood vessels appear normal with no visible microaneurysms, hemorrhages, or exudates.",
+    "No signs of diabetic retinopathy were detected. The retinal image does not show clear microaneurysms, hemorrhages, or hard exudates.",
   Mild:
-    "Mild Non-Proliferative Diabetic Retinopathy (NPDR) detected. Small microaneurysms (tiny red dots) may be present. These are swollen areas in the small blood vessels of the retina.",
+    "Mild non-proliferative diabetic retinopathy was detected. Small microaneurysms may be visible in the retina.",
   Moderate:
-    "Moderate NPDR detected. Multiple microaneurysms, some dot/blot hemorrhages, and possible hard exudates (yellow lipid deposits) are visible. Blood vessels may show signs of blockage.",
+    "Moderate non-proliferative diabetic retinopathy was detected. The image suggests more widespread microaneurysms, hemorrhages, or exudates.",
   Severe:
-    "Severe NPDR detected. Significant retinal hemorrhages in all four quadrants, venous beading, and intraretinal microvascular abnormalities (IRMA). High risk of progression to proliferative stage.",
+    "Severe non-proliferative diabetic retinopathy was detected. The retinal findings may include extensive hemorrhages, venous changes, or IRMA.",
   PDR:
-    "Proliferative Diabetic Retinopathy (PDR) detected. Abnormal new blood vessel growth (neovascularization) is present. These fragile vessels can leak blood into the vitreous, causing severe vision loss. URGENT medical intervention recommended.",
+    "Proliferative diabetic retinopathy was detected. This stage can include new abnormal blood vessel growth and requires prompt specialist review.",
 };
 
-/**
- * Generate a realistic mock heatmap as a colored SVG data URI.
- */
 function generateMockHeatmapURI(): string {
-  const cx = 40 + Math.random() * 40;
-  const cy = 40 + Math.random() * 40;
-  const r = 15 + Math.random() * 20;
+  const cx = 40 + Math.random() * 35;
+  const cy = 35 + Math.random() * 40;
+  const radius = 18 + Math.random() * 18;
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="224" height="224" viewBox="0 0 224 224">
-      <rect width="224" height="224" fill="#1a1a2e"/>
-      <circle cx="${(cx / 100) * 224}" cy="${(cy / 100) * 224}" r="${(r / 100) * 224}"
-        fill="url(#hg)" opacity="0.7"/>
-      <circle cx="${((cx + 15) / 100) * 224}" cy="${((cy - 10) / 100) * 224}" r="${((r * 0.5) / 100) * 224}"
-        fill="url(#hg2)" opacity="0.5"/>
+      <rect width="224" height="224" fill="#030712" />
+      <circle cx="112" cy="112" r="94" fill="#050816" stroke="#0f172a" stroke-width="2" />
+      <circle cx="${(cx / 100) * 224}" cy="${(cy / 100) * 224}" r="${(radius / 100) * 224}" fill="url(#hotspot1)" />
+      <circle cx="${((cx + 14) / 100) * 224}" cy="${((cy + 8) / 100) * 224}" r="${((radius * 0.45) / 100) * 224}" fill="url(#hotspot2)" />
       <defs>
-        <radialGradient id="hg">
-          <stop offset="0%" stop-color="#ff4444"/>
-          <stop offset="40%" stop-color="#ff8800" stop-opacity="0.6"/>
-          <stop offset="100%" stop-color="#0066ff" stop-opacity="0"/>
+        <radialGradient id="hotspot1">
+          <stop offset="0%" stop-color="#ff2200" />
+          <stop offset="35%" stop-color="#ff9f00" stop-opacity="0.9" />
+          <stop offset="70%" stop-color="#ffe600" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#0014ff" stop-opacity="0.05" />
         </radialGradient>
-        <radialGradient id="hg2">
-          <stop offset="0%" stop-color="#ffcc00"/>
-          <stop offset="60%" stop-color="#ff6600" stop-opacity="0.4"/>
-          <stop offset="100%" stop-color="#0044aa" stop-opacity="0"/>
+        <radialGradient id="hotspot2">
+          <stop offset="0%" stop-color="#fff6a5" stop-opacity="0.95" />
+          <stop offset="55%" stop-color="#ff5a00" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#0014ff" stop-opacity="0" />
         </radialGradient>
       </defs>
     </svg>
@@ -57,50 +51,54 @@ function generateMockHeatmapURI(): string {
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
-/**
- * Generate a mock prediction for UI testing.
- */
-export async function getMockPrediction(file: File): Promise<PredictionResult> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 2500 + Math.random() * 1500));
+function buildMockProbabilities(stageIndex: number): Record<string, number> {
+  const raw = STAGES.map((_, index) =>
+    index === stageIndex ? 4 + Math.random() * 2.5 : 0.15 + Math.random() * 0.8,
+  );
+  const total = raw.reduce((sum, value) => sum + value, 0);
 
-  // Deterministic stage selection based on file properties
+  return Object.fromEntries(
+    STAGES.map((stage, index) => [
+      stage,
+      Math.round((raw[index] / total) * 10000) / 10000,
+    ]),
+  );
+}
+
+export async function getMockPrediction(file: File): Promise<PredictionResult> {
+  await new Promise((resolve) => setTimeout(resolve, 2200 + Math.random() * 1000));
+
   const stageIndex = (file.name.length + file.size) % 5;
   const label = STAGES[stageIndex];
-  const confidence = 0.72 + Math.random() * 0.25;
-
-  // Generate fake probability distribution
-  const probs: Record<string, number> = {};
-  let remaining = 1 - confidence;
-  STAGES.forEach((s, i) => {
-    if (i === stageIndex) {
-      probs[s] = Math.round(confidence * 10000) / 10000;
-    } else {
-      const share = remaining * (0.1 + Math.random() * 0.3);
-      probs[s] = Math.round(share * 10000) / 10000;
-      remaining -= share;
-    }
-  });
+  const probabilities = buildMockProbabilities(stageIndex);
+  const confidence = Math.max(...Object.values(probabilities));
 
   let explanation = EXPLANATIONS[label];
   if (confidence < 0.75) {
-    explanation += `\n\n⚠️ Low confidence (${(confidence * 100).toFixed(0)}%). The model has significant uncertainty. Please consult an ophthalmologist.`;
+    explanation += `\n\nLow confidence (${(confidence * 100).toFixed(0)}%). Please confirm this screening result with an ophthalmologist.`;
   }
+
+  const heatmap = generateMockHeatmapURI();
 
   return {
     label,
     severity_index: stageIndex,
-    confidence: Math.round(confidence * 10000) / 10000,
-    all_probabilities: probs,
+    confidence,
+    probabilities,
+    all_probabilities: probabilities,
     explanation,
-    heatmap: generateMockHeatmapURI(),
+    heatmap,
+    overlay: heatmap,
     preprocessing: [
-      "Resized to 224×224",
-      "Normalized pixel values (0–1)",
-      "Applied EfficientNetB3 feature extraction",
-      "Generated Grad-CAM heatmap overlay",
+      "Decoded image and resized to 224x224 pixels",
+      "Scaled pixels to the training-time range (0-1)",
+      "Generated fallback probabilities for offline UI testing",
+      "Generated fallback explainability heatmap",
     ],
     is_mock: true,
+    heatmap_is_mock: true,
     needs_doctor: stageIndex >= 2 || confidence < 0.75,
+    gradcam_layer: null,
+    gradcam_method: "mock",
   };
 }

@@ -9,7 +9,7 @@ Step-by-step guide to train the Diabetic Retinopathy model on Google Colab.
 Go to: **https://colab.research.google.com**
 
 Click: **New Notebook**
-
+.
 ---
 
 ## Step 2: Enable GPU Runtime

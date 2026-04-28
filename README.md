@@ -1,6 +1,6 @@
 # SeeClearly AI — Diabetic Retinopathy Detection
 
-> AI-powered early detection of Diabetic Retinopathy from retinal fundus images using deep learning with Grad-CAM explainability.
+> **AI-powered early detection of Diabetic Retinopathy (DR) from retinal fundus images using Deep Learning with Grad-CAM explainability.**
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.12+-orange?logo=tensorflow)
@@ -10,230 +10,110 @@
 
 ---
 
-## 🎯 Overview
+## 🎯 Project Overview
 
-SeeClearly AI classifies retinal fundus images into **5 stages** of Diabetic Retinopathy:
+SeeClearly AI is a full-stack medical imaging application designed to assist in the early screening of Diabetic Retinopathy. By leveraging state-of-the-art Computer Vision and Explainable AI (XAI), the platform provides both a severity classification and a visual heatmap indicating the pathological regions identified by the model.
 
-| Stage | Description | Severity |
-|-------|-------------|----------|
-| **No_DR** | No retinopathy detected | ✅ Normal |
-| **Mild** | Microaneurysms present | ⚠️ Low |
-| **Moderate** | Hemorrhages + exudates | 🟠 Medium |
-| **Severe** | Significant hemorrhages, IRMA | 🔴 High |
-| **PDR** | Neovascularization (new vessel growth) | 🚨 Critical |
+### The Problem
+Diabetic Retinopathy is a leading cause of blindness. Early detection is critical, but manual screening of retinal fundus images is time-consuming and requires specialized expertise.
 
-### Key Features
-
-- **EfficientNetB3** transfer learning with focal loss for class imbalance
-- **Grad-CAM** heatmap explainability — see what the model focuses on
-- **Production-grade Flask API** with automatic mock fallback
-- **Premium dark-mode React UI** with glassmorphism design
-- **Docker deployment** ready
+### Our Solution
+A premium, production-ready web platform that provides:
+1.  **Instant Classification**: Categorizes images into 5 stages (No DR to PDR).
+2.  **Explainable AI**: Visualizes model attention using **Grad-CAM++**.
+3.  **Clinical Context**: Provides automated medical explanations for findings.
+4.  **Seamless Experience**: A modern, interactive UI built for healthcare professionals.
 
 ---
 
-## 📁 Project Structure
+## 🚀 Development Progress & Achievements (PPT Ready)
 
-```
+*Use the bullet points below for your project presentation slides:*
+
+### ✅ 1. Advanced AI Backend
+- **Core Architecture**: Integrated **EfficientNetB3** via Transfer Learning for high-precision feature extraction.
+- **Explainability (XAI)**: Implemented **Grad-CAM++** to generate high-resolution attention heatmaps, allowing clinicians to see exactly which retinal regions (microaneurysms, hemorrhages) triggered the AI's decision.
+- **Robust Inference Engine**: Built a Flask-based API with a **Live Model Discovery** system and an automatic **Mock Fallback** for offline development.
+- **Preprocessing Pipeline**: Automated retinal mask estimation to suppress image artifacts and edge noise.
+
+### ✅ 2. Premium UI/UX Design
+- **Modern Aesthetic**: Developed a high-end **Glassmorphism** interface using Tailwind CSS and Framer Motion.
+- **Interactive Visualization**: Created a custom **Heatmap Viewer** with real-time toggles (Original vs. Heatmap vs. Overlay).
+- **Dynamic Analysis UI**: Implemented simulated progress animations and "Smart Gauges" for severity visualization.
+- **Accessibility & Feedback**: Added a live **Connection Status** indicator and detailed error handling for robust user sessions.
+
+### ✅ 3. Production Readiness
+- **Docker Integration**: Fully containerized the stack (Flask + Vite) for one-command deployment using `docker-compose`.
+- **Comprehensive Training Pipeline**: Developed a modular training system including **Categorical Focal Loss** to handle class imbalance in medical datasets.
+- **Performance Optimized**: Optimized frontend builds using Vite and responsive components for cross-device compatibility.
+
+---
+
+## 🛠️ Technical Stack
+
+| Component | Technologies |
+|-----------|--------------|
+| **Deep Learning** | TensorFlow 2.12, Keras, EfficientNetB3, NumPy |
+| **Explainability** | Grad-CAM, Grad-CAM++, OpenCV |
+| **Backend API** | Flask, Python 3.10+, Flask-CORS |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
+| **UI Components** | Radix UI, Shadcn/UI, Lucide React |
+| **Animations** | Framer Motion, CSS Keyframes |
+| **Deployment** | Docker, Docker Compose |
+
+---
+
+## 📁 Architecture Overview
+
+```bash
 seeclearly_ai/
-├── training/                    # 🧪 Model Training Pipeline
-│   ├── config.py               # Training configuration constants
-│   ├── data_preprocessing.py   # APTOS 2019 data loading + augmentation
-│   ├── focal_loss.py           # Categorical focal loss implementation
-│   ├── train.py                # Two-phase training script
-│   ├── evaluate.py             # Confusion matrix, ROC-AUC, F1-score
-│   └── requirements.txt        # Training dependencies
-│
-├── backend/                     # 🖥️ Flask API Server
-│   ├── app.py                  # Flask endpoints (/health, /predict)
-│   ├── dr_detection.py         # Prediction engine + mock fallback
-│   ├── gradcam.py              # Grad-CAM heatmap generation
-│   └── requirements.txt        # Backend dependencies
-│
-├── src/                         # 🎨 React Frontend
-│   ├── pages/Index.tsx         # Main analysis page
-│   ├── components/
-│   │   ├── ImageUploader.tsx   # Drag-and-drop image upload
-│   │   ├── ResultDisplay.tsx   # Full result view
-│   │   ├── SeverityGauge.tsx   # Animated severity indicator
-│   │   ├── HeatmapViewer.tsx   # Original/Grad-CAM/Overlay toggle
-│   │   ├── AnalysisAnimation.tsx # Processing animation
-│   │   └── ConnectionStatus.tsx  # Backend status indicator
-│   └── lib/
-│       ├── api.ts              # API client with fallback
-│       └── mockPredictor.ts    # Client-side mock for offline dev
-│
-├── models/                      # 📦 Trained Model Weights
-│   └── .gitkeep                # Place dr_efficientnet_b3.keras here
-│
-├── utils/                       # 🔧 Shared Utilities
-│   ├── preprocessing.py        # Image preprocessing functions
-│   └── __init__.py
-│
-├── docs/                        # 📚 Documentation
-│   ├── research_improvements.md
-│   └── deployment_guide.md
-│
-├── Dockerfile                   # Docker multi-stage build
-├── docker-compose.yml           # Single-command deployment
-├── requirements.txt             # All Python dependencies
-├── package.json                 # Frontend dependencies
-└── README.md                    # This file
+├── training/           # 🧪 Research & Development (Model Training)
+│   ├── train.py        # Two-phase training logic
+│   └── focal_loss.py   # Advanced loss for imbalanced medical data
+├── backend/            # 🖥️ Inference API (Python/Flask)
+│   ├── app.py          # RESTful endpoints (/predict, /health)
+│   ├── dr_detection.py # Prediction logic & Model discovery
+│   └── gradcam.py      # Heatmap generation & Image processing
+├── src/                # 🎨 UI Layer (React/TypeScript)
+│   ├── components/     # Reusable UI (ImageUploader, HeatmapViewer)
+│   └── lib/            # API & Mock predictor logic
+├── models/             # 📦 Serialized weights (.keras / .h5)
+└── Dockerfile          # 🐳 Multi-stage production build
 ```
+
+---
+
+## 🔬 Medical AI Insight: How it Works
+
+1.  **Image Normalization**: The input image is resized to 224x224 and normalized for the EfficientNetB3 backbone.
+2.  **Feature Extraction**: The model processes the image through deep convolutional blocks, identifying complex patterns like cotton-wool spots or neovascularization.
+3.  **Explainability Step**: During the backward pass, gradients are pooled from the `block6a_expand_activation` layer to create a **Class Activation Map (CAM)**.
+4.  **Clinical Mapping**: The CAM is upsampled and overlaid on the original image, highlighting areas of high clinical significance in red/yellow.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- **Node.js** v18+ ([download](https://nodejs.org/))
-- **Python** v3.10+ ([download](https://www.python.org/))
-- **pip** (comes with Python)
-
-### 1. Clone & Install
-
+### 1. Install Dependencies
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/seeclearly-ai.git
-cd seeclearly-ai
-
-# Install frontend dependencies
 npm install
-
-# Install Python dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Run Locally
-
-**Frontend only** (mock mode — no model needed):
+### 2. Run the Full Stack
 ```bash
-npm run dev
-# Opens at http://localhost:8080
+# Start both Backend and Frontend in one command (Windows)
+npm run dev:full
 ```
 
-**Frontend + Backend** (with Flask API):
-```bash
-# Terminal 1: Start Flask backend
-python backend/app.py
-# Server starts at http://localhost:5001
-
-# Terminal 2: Start Vite frontend
-npm run dev
-# Opens at http://localhost:8080
-```
-
-> **Note:** Without a trained model file in `models/`, the backend runs in **mock mode** with simulated predictions. The UI works identically — you'll see a "Mock Mode" badge.
-
----
-
-## 🧪 Training the Model
-
-Training requires a **GPU** (Google Colab T4 or better recommended).
-
-### 1. Download APTOS 2019 Dataset
-
-```bash
-# Install Kaggle CLI
-pip install kaggle
-
-# Set up API key (download from kaggle.com/settings)
-# Place kaggle.json in ~/.kaggle/
-
-# Download dataset
-kaggle competitions download -c aptos2019-blindness-detection
-unzip aptos2019-blindness-detection.zip -d aptos2019-blindness-detection/
-```
-
-**Expected folder structure:**
-```
-aptos2019-blindness-detection/
-├── train.csv              # 3,662 rows (id_code, diagnosis)
-├── train_images/          # 3,662 PNG fundus images
-├── test.csv
-└── test_images/
-```
-
-### 2. Train on Colab
-
-1. Upload the `training/` folder to Google Colab
-2. Upload the dataset to Colab or mount from Google Drive
-3. Update `DATA_PATH` in `training/config.py` if needed
-4. Run:
-
-```python
-# In a Colab cell:
-%cd /content/training
-!python train.py
-```
-
-**Training takes ~2-3 hours** on a T4 GPU.
-
-### 3. Evaluate
-
-```python
-!python evaluate.py
-```
-
-Outputs saved to `training/outputs/`:
-- `confusion_matrix.png`
-- `classification_report.txt`
-- `roc_curves.png`
-- `training_history.png`
-
-### 4. Download Model
-
-Download `models/dr_efficientnet_b3.keras` from Colab and place it in the `models/` directory locally.
-
----
-
-## 📊 Expected Performance
-
-| Metric | Expected |
-|--------|----------|
-| **Overall Accuracy** | 82-85% |
-| **Quadratic Weighted Kappa** | 0.78-0.85 |
-| **Mean ROC-AUC** | 0.90+ |
-| **No_DR Recall** | 90-95% |
-| **Mild Recall** | 55-65% |
-| **Moderate Recall** | 80-85% |
-| **Severe Recall** | 60-70% |
-| **PDR Recall** | 75-85% |
-
----
-
-## 🐳 Docker Deployment
-
-```bash
-# Build and run
-docker-compose up --build
-
-# Access at http://localhost:5001
-```
-
-For detailed deployment instructions (Render, HuggingFace Spaces), see [docs/deployment_guide.md](docs/deployment_guide.md).
-
----
-
-## 🔬 Research Improvements
-
-See [docs/research_improvements.md](docs/research_improvements.md) for detailed suggestions on:
-- Vision Transformers (ViT, DeiT)
-- Ensemble methods
-- Advanced preprocessing (Ben Graham's technique)
-- Multi-modal fusion
-- Federated learning
-- Uncertainty quantification
+*The frontend will be available at http://localhost:8080 and the backend at http://localhost:5001.*
 
 ---
 
 ## ⚠️ Disclaimer
-
 This is an **AI-assisted screening tool** for educational and research purposes only. It does **not** constitute medical advice. Always consult a qualified ophthalmologist for diagnosis and treatment of Diabetic Retinopathy.
 
 ---
 
 ## 📝 License
-
-MIT License — see [LICENSE](LICENSE) for details.
+SRMAP License — © 2026 SeeClearly AI Project
