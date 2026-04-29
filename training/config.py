@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SeeClearly AI — Training Configuration
+RetinoCheck — Training Configuration
 All constants and paths for the training pipeline.
 """
 
@@ -12,7 +12,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(BASE_DIR, "aptos2019-blindness-detection")
 MODEL_DIR = os.path.join(BASE_DIR, "models")
-MODEL_SAVE_PATH = os.path.join(MODEL_DIR, "dr_efficientnet_b3.keras")
+MODEL_SAVE_PATH = os.path.join(MODEL_DIR, "Updated-Xception-diabetic-retinopathy.h5")
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
 
 # Ensure output directories exist
@@ -22,7 +22,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # ==========================================
 # IMAGE / DATA
 # ==========================================
-IMG_SIZE = (224, 224)  # EfficientNetB3 optimal input size
+IMG_SIZE = (299, 299)  # Xception input size
 BATCH_SIZE = 32
 NUM_CLASSES = 5
 VALIDATION_SPLIT = 0.2
@@ -46,9 +46,8 @@ REDUCE_LR_PATIENCE = 2
 REDUCE_LR_FACTOR = 0.5
 REDUCE_LR_MIN = 1e-7
 
-# Focal Loss
-FOCAL_ALPHA = 0.25
-FOCAL_GAMMA = 2.0
+# Loss
+LOSS_FUNCTION = "categorical_crossentropy"
 
 # ==========================================
 # LABELS
@@ -66,10 +65,8 @@ LABEL_LIST = ["No_DR", "Mild", "Moderate", "Severe", "PDR"]
 # AUGMENTATION
 # ==========================================
 AUGMENTATION_CONFIG = {
-    "rotation_range": 20,
     "zoom_range": 0.15,
-    "width_shift_range": 0.2,
-    "height_shift_range": 0.2,
+    "shear_range": 0.2,
     "horizontal_flip": True,
     "fill_mode": "constant",
     "cval": 0,

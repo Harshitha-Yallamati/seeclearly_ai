@@ -1,4 +1,4 @@
-# 🧪 Google Colab Training Guide — SeeClearly AI
+# 🧪 Google Colab Training Guide — RetinoCheck
 
 Step-by-step guide to train the Diabetic Retinopathy model on Google Colab.
 
@@ -529,7 +529,7 @@ print("\n📌 Next: Place dr_efficientnet_b3.keras in your project's models/ fol
 After downloading, move the file:
 
 ```
-dr_efficientnet_b3.keras  →  c:\Projects\seeclearly_ai\models\dr_efficientnet_b3.keras
+dr_efficientnet_b3.keras  →  c:\Projects\retinocheck\models\dr_efficientnet_b3.keras
 ```
 
 Then start your local app:

@@ -1,4 +1,4 @@
-# SeeClearly AI — All Python Dependencies
+# RetinoCheck — All Python Dependencies
 # Install: pip install -r requirements.txt
 
 # Backend

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SeeClearly AI — Comprehensive Model Evaluation
+RetinoCheck — Comprehensive Model Evaluation
 
 Generates:
   1. Confusion Matrix (heatmap PNG)
@@ -124,7 +124,7 @@ def generate_classification_report(y_true, y_pred):
     # Save to file
     save_path = os.path.join(OUTPUT_DIR, "classification_report.txt")
     with open(save_path, "w") as f:
-        f.write("SeeClearly AI — Classification Report\n")
+        f.write("RetinoCheck — Classification Report\n")
         f.write("=" * 50 + "\n\n")
         f.write(report)
     print(f"   💾 Saved: {save_path}")
@@ -247,7 +247,7 @@ def plot_training_history(history_path=None):
 def evaluate(model_path=None):
     """Run the complete evaluation pipeline."""
     print("=" * 60)
-    print("  SeeClearly AI — Model Evaluation")
+    print("  RetinoCheck — Model Evaluation")
     print("=" * 60)
 
     # 1. Load model

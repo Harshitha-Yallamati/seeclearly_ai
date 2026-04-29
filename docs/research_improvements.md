@@ -1,4 +1,4 @@
-# Research Improvements — SeeClearly AI
+# Research Improvements — RetinoCheck
 
 Suggestions to push the system from portfolio-level (~83% accuracy) to **publishable research-level** (90%+).
 

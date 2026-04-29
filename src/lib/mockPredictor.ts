@@ -90,7 +90,7 @@ export async function getMockPrediction(file: File): Promise<PredictionResult> {
     heatmap,
     overlay: heatmap,
     preprocessing: [
-      "Decoded image and resized to 224x224 pixels",
+      "Decoded image and resized to 299x299 pixels",
       "Scaled pixels to the training-time range (0-1)",
       "Generated fallback probabilities for offline UI testing",
       "Generated fallback explainability heatmap",

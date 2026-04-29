@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Flask API backend for SeeClearly AI.
+Flask API backend for RetinoCheck.
 
 Endpoints:
   GET  /health
@@ -72,9 +72,9 @@ def predict():
         method_label = str(result.get("gradcam_method") or "gradcam").upper()
         layer_label = result.get("gradcam_layer") or "auto-selected feature layer"
         result["preprocessing"] = [
-            "Decoded image and resized to 224x224 pixels",
+            "Decoded image and resized to 299x299 pixels",
             "Scaled pixels to the training-time range (0-1)",
-            "Ran EfficientNetB3 inference and normalized class probabilities",
+            "Ran Xception inference and normalized class probabilities",
             f"Generated {method_label} explainability maps from {layer_label}",
         ]
         return jsonify(result)
@@ -95,7 +95,7 @@ def serve_frontend(path):
 if __name__ == "__main__":
     status = get_model_status()
     print("=" * 50)
-    print("  SeeClearly AI Backend API")
+    print("  RetinoCheck Backend API")
     print("=" * 50)
     print(f"  Mode: {status['mode']}")
     print(f"  Model: {status['model_path']}")

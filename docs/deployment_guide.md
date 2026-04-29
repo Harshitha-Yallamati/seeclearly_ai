@@ -1,4 +1,4 @@
-# Deployment Guide — SeeClearly AI
+# Deployment Guide — RetinoCheck
 
 ## Option 1: Docker (Recommended)
 

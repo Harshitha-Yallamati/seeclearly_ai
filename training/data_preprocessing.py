@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-SeeClearly AI — Data Preprocessing Pipeline
+RetinoCheck — Data Preprocessing Pipeline
 
-Handles APTOS 2019 dataset loading, augmentation, and generator creation.
-Implements Ben Graham-inspired preprocessing for retinal fundus images.
+Handles dataset loading, augmentation, and generator creation.
+Simple rescale-only preprocessing to match Xception training requirements.
 """
 
 import os
+import cv2
 import numpy as np
 import pandas as pd
 from sklearn.utils.class_weight import compute_class_weight
@@ -18,6 +19,8 @@ from config import (
     DATA_PATH, IMG_SIZE, BATCH_SIZE, VALIDATION_SPLIT,
     RANDOM_SEED, AUGMENTATION_CONFIG, LABEL_LIST
 )
+
+
 
 
 def load_aptos_dataframe():
@@ -88,7 +91,7 @@ def create_data_generators(df=None):
             "Make sure you extracted the dataset correctly."
         )
 
-    # Training generator with augmentation
+    # Training generator with augmentation (rescale only, NO custom preprocessing)
     train_datagen = ImageDataGenerator(
         rescale=1.0 / 255,
         validation_split=VALIDATION_SPLIT,

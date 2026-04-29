@@ -1,1 +1,1 @@
-# SeeClearly AI — Shared Utilities Package
+# RetinoCheck — Shared Utilities Package

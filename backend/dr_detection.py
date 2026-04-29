@@ -26,11 +26,11 @@ from gradcam import (
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "dr_efficientnet_b3.keras")
-IMG_SIZE = (224, 224)
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "Updated-Xception-diabetic-retinopathy.h5")
+IMG_SIZE = (299, 299)
 LABEL_MAP = ["No_DR", "Mild", "Moderate", "Severe", "PDR"]
 MODEL_EXTENSIONS = {".keras", ".h5", ".hdf5"}
-CAM_LAYER_NAME = os.getenv("DR_CAM_LAYER", "block6a_expand_activation").strip()
+CAM_LAYER_NAME = os.getenv("DR_CAM_LAYER", "block14_sepconv2_act").strip()
 
 _MODEL_INSTANCE = None
 _MODEL_LOADED = False
@@ -38,35 +38,52 @@ _MODEL_PATH = None
 _MODEL_LOAD_ERROR = None
 
 
+def _dummy_loss(y_true, y_pred):
+    return tf.reduce_mean(y_pred)
+
 def _load_model_for_inference(model_path):
     """
     Load a Keras model in inference mode.
 
-    compile=False avoids failures caused by missing optimizer / loss objects when
-    the saved model is only being used for prediction.
+    Strategy (per user request):
+    1. Try load_model(compile=False) — best case, always try first.
+    2. Try load_model with custom_objects — handles custom loss/metric names.
+    3. Last resort: rebuild Xception + Flatten + Dense(5) and load_weights.
     """
+    # --- Attempt 1: Clean load ---
     try:
         return load_model(model_path, compile=False)
     except Exception as first_error:
-        # Fall back to the focal-loss custom object if the model was saved with it.
-        try:
-            import sys
+        print(f"[Model Loader] Attempt 1 failed: {first_error}")
 
-            training_dir = os.path.join(BASE_DIR, "training")
-            if training_dir not in sys.path:
-                sys.path.insert(0, training_dir)
-            from focal_loss import categorical_focal_loss
+    # --- Attempt 2: With custom objects ---
+    try:
+        return load_model(
+            model_path,
+            compile=False,
+            custom_objects={"focal_loss_fixed": _dummy_loss, "qwk": _dummy_loss},
+        )
+    except Exception as second_error:
+        print(f"[Model Loader] Attempt 2 failed: {second_error}")
 
-            return load_model(
-                model_path,
-                compile=False,
-                custom_objects={"focal_loss_fixed": categorical_focal_loss()},
-            )
-        except Exception as second_error:
-            raise RuntimeError(
-                f"{type(first_error).__name__}: {first_error}; "
-                f"fallback failed with {type(second_error).__name__}: {second_error}"
-            ) from second_error
+    # --- Attempt 3: Rebuild architecture + load_weights (backup only) ---
+    try:
+        from tensorflow.keras.applications import Xception
+        from tensorflow.keras.layers import Flatten, Dense
+        from tensorflow.keras.models import Model
+
+        base = Xception(weights=None, include_top=False, input_shape=(299, 299, 3))
+        x = Flatten()(base.output)
+        output = Dense(5, activation="softmax")(x)
+        rebuilt = Model(inputs=base.input, outputs=output)
+        rebuilt.load_weights(model_path)
+        print(f"[Model Loader] Attempt 3 succeeded (rebuild + load_weights).")
+        return rebuilt
+    except Exception as third_error:
+        raise RuntimeError(
+            f"All 3 load attempts failed. "
+            f"1: {first_error} | 2: {second_error} | 3: {third_error}"
+        ) from third_error
 
 
 def _discover_model_candidates():
@@ -101,8 +118,9 @@ def _discover_model_candidates():
     for directory in preferred_dirs:
         if directory.is_dir():
             for preferred_name in [
-                "dr_efficientnet_b3.keras",
-                "dr_efficientnet_b3.h5",
+                "Updated-Xception-diabetic-retinopathy.h5",
+                "diabetic_retinopathy_model.keras",
+                "diabetic_retinopathy_model.h5",
                 "best_model.keras",
                 "best_model.h5",
                 "model.keras",
@@ -146,7 +164,7 @@ def get_model():
     if not candidates:
         _MODEL_LOAD_ERROR = (
             "No trained model file was found. Place the exported model in "
-            "'models/dr_efficientnet_b3.keras' or set DR_MODEL_PATH."
+            "'models/Updated-Xception-diabetic-retinopathy.h5' or set DR_MODEL_PATH."
         )
         _MODEL_LOADED = True
         print(f"Warning: {_MODEL_LOAD_ERROR}")
@@ -162,6 +180,7 @@ def get_model():
             return _MODEL_INSTANCE
         except Exception as exc:
             last_error = f"Failed to load {candidate}: {exc}"
+            print(f"Loading error for {candidate}: {exc}")
 
     _MODEL_LOAD_ERROR = last_error or "Unknown model-loading error."
     _MODEL_INSTANCE = None
@@ -204,16 +223,17 @@ def _decode_image(img_path_or_file):
 
 def preprocess_image(img_path_or_file):
     """
-    Decode and resize the image into the model's training-time input format.
+    Decode, resize to 299x299, and rescale to [0, 1].
+    Matches the Xception training pipeline exactly (rescale=1./255 only).
     """
-    img = _decode_image(img_path_or_file)
-    if img is None:
+    img_uint8 = _decode_image(img_path_or_file)
+    if img_uint8 is None:
         return None
 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, IMG_SIZE, interpolation=cv2.INTER_AREA)
-    img = img.astype(np.float32) / 255.0
-    return img
+    img_rgb = cv2.cvtColor(img_uint8, cv2.COLOR_BGR2RGB)
+    img_resized = cv2.resize(img_rgb, IMG_SIZE, interpolation=cv2.INTER_AREA)
+    img_normalized = img_resized.astype(np.float32) / 255.0
+    return img_normalized
 
 
 def _normalize_probabilities(probabilities):
@@ -239,6 +259,20 @@ def _mock_probabilities():
     return _normalize_probabilities(scores)
 
 
+def is_fundus_image(img_rgb_uint8):
+    """
+    Heuristic Out-of-Distribution (OOD) detection.
+    Retinal images typically have R > G > B dominance.
+    """
+    r_mean = np.mean(img_rgb_uint8[:, :, 0])
+    g_mean = np.mean(img_rgb_uint8[:, :, 1])
+    b_mean = np.mean(img_rgb_uint8[:, :, 2])
+    
+    # If the red channel isn't dominant, it's likely not a genuine fundus
+    if r_mean < g_mean or r_mean < b_mean:
+        return False
+    return True
+
 def predict_dr(img_path_or_file):
     """
     Full prediction pipeline:
@@ -248,10 +282,22 @@ def predict_dr(img_path_or_file):
 
     if hasattr(img_path_or_file, "seek"):
         img_path_or_file.seek(0)
+        
+    # Read to verify OOD
+    raw_img = _decode_image(img_path_or_file)
+    if raw_img is None:
+        return {"error": "Invalid image. Could not decode the uploaded file."}
+        
+    raw_rgb = cv2.cvtColor(raw_img, cv2.COLOR_BGR2RGB)
+    if not is_fundus_image(raw_rgb):
+        return {"error": "OOD Detection Alert: Image rejected. This does not appear to be a valid retinal fundus scan."}
 
+    if hasattr(img_path_or_file, "seek"):
+        img_path_or_file.seek(0)
+    
     img = preprocess_image(img_path_or_file)
     if img is None:
-        return {"error": "Invalid image. Could not decode the uploaded file."}
+        return {"error": "Preprocessing failed."}
 
     img_expanded = np.expand_dims(img, axis=0)
     prediction_is_mock = False
@@ -270,6 +316,12 @@ def predict_dr(img_path_or_file):
         LABEL_MAP[i]: round(float(probs[i]), 4) for i in range(len(LABEL_MAP))
     }
 
+    # Confidence Threshold Handling
+    if confidence < 0.6:
+        return {
+            "error": f"Low confidence ({confidence*100:.1f}%). Please retake the image to ensure accurate screening."
+        }
+
     heatmap_assets = generate_heatmap_assets(
         img_np=img,
         model=model,
@@ -278,10 +330,22 @@ def predict_dr(img_path_or_file):
         method=DEFAULT_CAM_METHOD,
     )
     explanation = get_medical_explanation(label_str, confidence)
+    
+    # Clinical Decision Layer
+    triage_map = {
+        0: "Routine",
+        1: "Monitor",
+        2: "Refer",
+        3: "Urgent Referral",
+        4: "Urgent Referral"
+    }
+    triage_action = triage_map.get(label_idx, "Unknown")
+    explanation = f"Triage Action: {triage_action}\n\n" + explanation
 
     return {
         "label": label_str,
         "severity_index": label_idx,
+        "triage_action": triage_action,
         "confidence": round(confidence, 4),
         "probabilities": probability_map,
         "all_probabilities": probability_map,

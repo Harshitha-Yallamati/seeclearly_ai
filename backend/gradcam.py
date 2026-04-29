@@ -89,8 +89,8 @@ def resolve_cam_layer(model, requested_layer=None):
     """
     Resolve the best Grad-CAM layer for the current model.
 
-    Prefers an earlier high-resolution EfficientNet stage such as
-    block6a_expand_activation, then falls back to the last 4D layer.
+    Prefers an earlier high-resolution Xception stage such as
+    block14_sepconv2_act, then falls back to the last 4D layer.
     """
     candidate_names = []
     if requested_layer:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SeeClearly AI — Shared Image Preprocessing Utilities
+RetinoCheck — Shared Image Preprocessing Utilities
 
 Functions shared between training and backend for consistent image processing.
 """

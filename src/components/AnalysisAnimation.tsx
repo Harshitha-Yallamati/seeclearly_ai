@@ -6,7 +6,7 @@ interface AnalysisAnimationProps {
 
 const STEPS = [
   { label: "Preprocessing image", detail: "Resize → Normalize → RGB conversion", duration: 800 },
-  { label: "Extracting features", detail: "EfficientNetB3 feature extraction", duration: 1200 },
+  { label: "Extracting features", detail: "Xception feature extraction", duration: 1200 },
   { label: "Running classification", detail: "5-class softmax prediction", duration: 800 },
   { label: "Generating heatmap", detail: "Grad-CAM attention mapping", duration: 1000 },
 ];

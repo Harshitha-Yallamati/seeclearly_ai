@@ -55,12 +55,12 @@ const Index = () => {
       <header className="sticky top-0 z-50 glass-strong border-b border-border/30">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20">
-              <Eye className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center justify-center">
+              <img src="/placeholder.svg" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-tight leading-none">
-                SeeClearly<span className="text-primary">AI</span>
+                Retino<span className="text-primary">Check</span>
               </h1>
               <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-[0.2em] mt-0.5">
                 Diabetic Retinopathy Detection
@@ -175,7 +175,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="max-w-2xl mx-auto px-4 py-6 border-t border-border/20">
         <p className="text-[10px] text-muted-foreground/40 text-center">
-          SeeClearly AI © {new Date().getFullYear()} — For research and educational purposes only.
+          RetinoCheck © {new Date().getFullYear()} — For research and educational purposes only.
         </p>
       </footer>
     </div>
